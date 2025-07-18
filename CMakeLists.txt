@@ -9,3 +9,7 @@ add_executable(mpiTest
         mpiSample.c)
 
 target_link_libraries(mpiTest PRIVATE MPI::MPI_C)
+
+target_link_libraries(mpiTest PRIVATE flint mpfr gmp m)
+
+configure_file(${CMAKE_SOURCE_DIR}/primes.txt ${CMAKE_BINARY_DIR}/primes.txt COPYONLY)
