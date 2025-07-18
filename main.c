@@ -33,7 +33,7 @@ int main(int argc, char** argv)
     //Constants
 
     //len of prime
-    const long lenPrime = 50000;
+    const long lenPrime = 500000;
 
     //precision set up
     long prec = 100;
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
     double alpha = 0.3;
 
     //set up length to calculate
-    long qMax = 1000000;
+    long qMax = 10000000;
 
     MPI_Init(&argc, &argv);
     int rank, size;
@@ -69,7 +69,10 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    printf("Elapsed time after file reading: %.3f seconds\n", (double)(clock() - start) / CLOCKS_PER_SEC);
+    if (rank == 0)
+    {
+        printf("Elapsed time after file reading: %.3f seconds\n", (double)(clock() - start) / CLOCKS_PER_SEC);
+    }
 
     // setting up variables
     arb_t logq;
@@ -100,12 +103,13 @@ int main(int argc, char** argv)
     //loop through all q
     for (long q = -qMax; q <= qMax; q++)
     {
-        if ((q + qMax) % size != rank) continue; // skip q not assigned to this rank
-
-        if (q % 100000 == 0)
+        if (q % 100000 == 0 & rank == 0)
         {
             printf("Elapsed time when q=%d: %.3f seconds\n", q, (double)(clock() - start) / CLOCKS_PER_SEC);
         }
+
+        if ((q + qMax) % size != rank) continue; // skip q not assigned to this rank
+
 
         if (q % 4 == 0 || q % 4 == 1)
         {
