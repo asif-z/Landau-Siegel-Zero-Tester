@@ -37,13 +37,13 @@ int main(int argc, char** argv)
     const long lenPrime = 500000;
 
     //precision set up
-    long prec = 100;
+    long prec = 50;
 
     //set up alpha
-    double alpha = .7;
+    double alpha = .6;
 
     //set up length to calculate
-    long qMax = 100000;
+    long qMax = 100000000;
 
     MPI_Init(&argc, &argv);
     int rank, size;
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 
     // Set up c
     arb_init(c);
-    arb_set_d(c, 1/9.64590880);
+    arb_set_d(c, 0.01);
 
     arb_init(constant1);
     arb_init(constant2);
@@ -209,6 +209,10 @@ int main(int argc, char** argv)
             arb_mul(temp5, constant1, logq, prec);
             arb_add(rhs, rhs, temp5, prec);
             arb_add(rhs, rhs, constant2, prec);
+
+            // char *output = (char *) malloc(50 * sizeof(char));
+            // output = arb_get_str(rhs, 40, 0);
+            // printf("%ld,%s\n",q,output);
 
             if (arb_gt(sum, rhs) == 1)
             {
