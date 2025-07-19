@@ -5,6 +5,7 @@
 #include <flint/arb.h>
 #include <flint/long_extras.h>
 #include <time.h>
+#include<unistd.h>
 
 //read a list of primes
 int read_primes(long lenPrime, long* primes)
@@ -39,10 +40,10 @@ int main(int argc, char** argv)
     long prec = 100;
 
     //set up alpha
-    double alpha = 0.3;
+    double alpha = 0.7;
 
     //set up length to calculate
-    long qMax = 10000000;
+    long qMax = 1000000;
 
     MPI_Init(&argc, &argv);
     int rank, size;
@@ -52,7 +53,7 @@ int main(int argc, char** argv)
     //set up lambda
     arb_t lambda;
     arb_init(lambda);
-    arb_set_d(lambda, 1);
+    arb_set_d(lambda, 1.65);
 
 
     clock_t start, end;
@@ -79,6 +80,7 @@ int main(int argc, char** argv)
     arb_t sigma;
     arb_t sum;
     arb_t logp;
+    arb_t con;
     arb_t p;
     arb_t psigma;
     arb_t zeta_term;
@@ -86,9 +88,30 @@ int main(int argc, char** argv)
     arb_init(one);
     arb_set_ui(one, 1);
     arb_t temp1; //temp variables for calculations
-    arb_t temp2;
+    arb_t temp2, temp3,  temp4, temp5;
     arb_t l_term;
     arb_t term;
+    arb_t c;
+    arb_t constant1, constant2;
+    arb_t rhs;
+
+    // sets sigma= 1 + lambda/log(q)
+    arb_init(sigma);
+    arb_init(con);
+    arb_init(temp1);
+    arb_log_ui(con, 10000000000, prec);
+    arb_div(temp1, lambda, con, prec);
+    arb_add(sigma, one, temp1, prec);
+
+    // Set up c
+    arb_init(c);
+    arb_set_d(lambda, 1/9.64590880);
+
+    arb_init(constant1);
+    arb_init(constant2);
+    arb_set_d(constant1, 0.2432);
+    arb_set_d(constant2, 2.8943);
+
 
     // Open separate output file per rank to avoid clashes
     char filename[100];
@@ -110,19 +133,16 @@ int main(int argc, char** argv)
 
         if ((q + qMax) % size != rank) continue; // skip q not assigned to this rank
 
+        if (q==0) continue;
+
+        // Calculating log(q)
+        arb_init(logq);
+        arb_log_ui(logq, abs(q), prec);
 
         if (q % 4 == 0 || q % 4 == 1)
         {
             //number of terms to compute
             long len = pow(abs(q), alpha);
-
-            // sets sigma= 1 + lambda/log(q)
-            arb_init(sigma);
-            arb_init(logq);
-            arb_init(temp1);
-            arb_log_ui(logq, abs(q), prec);
-            arb_div(temp1, lambda, logq, prec);
-            arb_add(sigma, one, temp1, prec);
 
             //calculate the partial sum
             arb_init(sum);
@@ -164,9 +184,6 @@ int main(int argc, char** argv)
                     arb_inv(temp2, temp1, prec);
                     arb_neg(l_term, temp2);
                 }
-                else
-                {
-                }
 
                 // add log(p)*(zeta_term + l_term) to the sum
                 arb_init(term);
@@ -178,9 +195,30 @@ int main(int argc, char** argv)
                 prime = primes[primeIndex++];
             }
 
-            char* output = (char*)malloc(50 * sizeof(char));
-            output = arb_get_str(sum, 40, 0);
-            fprintf(outfile, "%ld,%s\n", q, output);
+            arb_init(rhs);
+            arb_init(temp3);
+            arb_init(temp4);
+            arb_init(temp5);
+
+            arb_div(temp3, c, sigma, prec);
+            arb_mul(temp4, sigma, logq, prec);
+            arb_add(temp4, temp4, c, prec);
+            arb_div(rhs, temp3, temp4, prec);
+            arb_mul(temp5, constant1, logq, prec);
+            arb_add(rhs, rhs, temp5, prec);
+            arb_add(rhs, rhs, constant2, prec);
+
+            if (arb_gt(sum, rhs) == 1)
+            {
+                fprintf(outfile, "%ld,pass\n", q);
+            }else
+            {
+                fprintf(outfile, "%ld,fail\n", q);
+            }
+
+
+
+
         }
     }
 
