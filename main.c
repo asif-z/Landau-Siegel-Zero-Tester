@@ -40,10 +40,10 @@ int main(int argc, char** argv)
     long prec = 100;
 
     //set up alpha
-    double alpha = 0.7;
+    double alpha = .7;
 
     //set up length to calculate
-    long qMax = 1000000;
+    long qMax = 100000;
 
     MPI_Init(&argc, &argv);
     int rank, size;
@@ -94,18 +94,20 @@ int main(int argc, char** argv)
     arb_t c;
     arb_t constant1, constant2;
     arb_t rhs;
+    arb_t r;
 
-    // sets sigma= 1 + lambda/log(q)
+    // sets sigma, r
     arb_init(sigma);
     arb_init(con);
     arb_init(temp1);
+    arb_init(r);
     arb_log_ui(con, 10000000000, prec);
-    arb_div(temp1, lambda, con, prec);
-    arb_add(sigma, one, temp1, prec);
+    arb_div(r, lambda, con, prec);
+    arb_add(sigma, one, r, prec);
 
     // Set up c
     arb_init(c);
-    arb_set_d(lambda, 1/9.64590880);
+    arb_set_d(c, 1/9.64590880);
 
     arb_init(constant1);
     arb_init(constant2);
@@ -200,8 +202,8 @@ int main(int argc, char** argv)
             arb_init(temp4);
             arb_init(temp5);
 
-            arb_div(temp3, c, sigma, prec);
-            arb_mul(temp4, sigma, logq, prec);
+            arb_div(temp3, c, r, prec);
+            arb_mul(temp4, r, logq, prec);
             arb_add(temp4, temp4, c, prec);
             arb_div(rhs, temp3, temp4, prec);
             arb_mul(temp5, constant1, logq, prec);
