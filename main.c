@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     //set up lambda
     arb_t lambda;
     arb_init(lambda);
-    arb_set_d(lambda, 1.65);
+    arb_set_str(lambda, "1.65", prec);
 
 
     clock_t start, end;
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     arb_t sigma;
     arb_t sum;
     arb_t logp;
-    arb_t con;
+    arb_t logQ;
     arb_t p;
     arb_t psigma;
     arb_t zeta_term;
@@ -92,27 +92,28 @@ int main(int argc, char** argv)
     arb_t l_term;
     arb_t term;
     arb_t c;
-    arb_t constant1, constant2;
+    arb_t phi;
+    arb_t O1;
     arb_t rhs;
     arb_t r;
 
     // sets sigma, r
     arb_init(sigma);
-    arb_init(con);
+    arb_init(logQ);
     arb_init(temp1);
     arb_init(r);
-    arb_log_ui(con, 10000000000, prec);
-    arb_div(r, lambda, con, prec);
+    arb_log_ui(logQ, 10000000000, prec);
+    arb_div(r, lambda, logQ, prec);
     arb_add(sigma, one, r, prec);
 
     // Set up c
     arb_init(c);
-    arb_set_d(c, 0.01);
+    arb_set_str(c, "0.01", prec);
 
-    arb_init(constant1);
-    arb_init(constant2);
-    arb_set_d(constant1, 0.2432);
-    arb_set_d(constant2, 2.8943);
+    arb_init(phi);
+    arb_init(O1);
+    arb_set_str(phi, "0.2432", prec);
+    arb_set_str(O1, "2.8943", prec);
 
 
     // Open separate output file per rank to avoid clashes
@@ -206,9 +207,9 @@ int main(int argc, char** argv)
             arb_mul(temp4, r, logq, prec);
             arb_add(temp4, temp4, c, prec);
             arb_div(rhs, temp3, temp4, prec);
-            arb_mul(temp5, constant1, logq, prec);
+            arb_mul(temp5, phi, logq, prec);
             arb_add(rhs, rhs, temp5, prec);
-            arb_add(rhs, rhs, constant2, prec);
+            arb_add(rhs, rhs, O1, prec);
 
             // char *output = (char *) malloc(50 * sizeof(char));
             // output = arb_get_str(rhs, 40, 0);
@@ -221,9 +222,6 @@ int main(int argc, char** argv)
             {
                 fprintf(outfile, "%ld,fail\n", q);
             }
-
-
-
 
         }
     }
