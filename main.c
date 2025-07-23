@@ -5,7 +5,7 @@
 #include <flint/arb.h>
 #include <flint/long_extras.h>
 #include <time.h>
-#include<unistd.h>
+#include <unistd.h>
 
 //read a list of primes
 int read_primes(long lenPrime, long* primes)
@@ -39,8 +39,8 @@ int main(int argc, char** argv)
     //precision set up
     long prec = 50;
 
-    //set up alpha
-    double alpha = .6;
+    //set up prime len
+    long primeBd = 200000;
 
     //set up length to calculate
     long qMax = 100000000;
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     //set up lambda
     arb_t lambda;
     arb_init(lambda);
-    arb_set_d(lambda, 1.65);
+    arb_set_d(lambda, 0.69165);
 
 
     clock_t start, end;
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
     arb_init(one);
     arb_set_ui(one, 1);
     arb_t temp1; //temp variables for calculations
-    arb_t temp2, temp3,  temp4, temp5;
+    arb_t temp2, temp3, temp4, temp5;
     arb_t l_term;
     arb_t term;
     arb_t c;
@@ -111,8 +111,8 @@ int main(int argc, char** argv)
 
     arb_init(constant1);
     arb_init(constant2);
-    arb_set_d(constant1, 0.2432);
-    arb_set_d(constant2, 2.8943);
+    arb_set_d(constant1, 0.2469115);
+    arb_set_d(constant2, 3.865425);
 
 
     // Open separate output file per rank to avoid clashes
@@ -130,29 +130,41 @@ int main(int argc, char** argv)
     {
         if (q % 100000 == 0 & rank == 0)
         {
-            printf("Elapsed time when q=%d: %.3f seconds\n", q, (double)(clock() - start) / CLOCKS_PER_SEC);
+            printf("Elapsed time when q=%ld: %.3f seconds\n", q, (double)(clock() - start) / CLOCKS_PER_SEC);
         }
 
         if ((q + qMax) % size != rank) continue; // skip q not assigned to this rank
 
-        if (q==0) continue;
+        if (q == 0) continue;
 
         // Calculating log(q)
         arb_init(logq);
         arb_log_ui(logq, abs(q), prec);
 
-        if (q % 4 == 0 || q % 4 == 1)
+        if (q % 4 == 0 || q % 4 == 1 || q % 4 == -3)
         {
-            //number of terms to compute
-            long len = pow(abs(q), alpha);
-
             //calculate the partial sum
             arb_init(sum);
+
+            //calculate rhs
+
+            arb_init(rhs);
+            arb_init(temp3);
+            arb_init(temp4);
+            arb_init(temp5);
+
+            arb_div(temp3, c, r, prec);
+            arb_mul(temp4, r, logq, prec);
+            arb_add(temp4, temp4, c, prec);
+            arb_div(rhs, temp3, temp4, prec);
+            arb_mul(temp5, constant1, logq, prec);
+            arb_add(rhs, rhs, temp5, prec);
+            arb_add(rhs, rhs, constant2, prec);
 
             // loop over all primes < q^alpha
             long prime = primes[0];
             int primeIndex = 0;
-            while (prime < len)
+            while (primeIndex < primeBd)
             {
                 int chi = z_kronecker(q, prime); //the value of chi(prime)
 
@@ -195,20 +207,12 @@ int main(int argc, char** argv)
                 arb_add(sum, sum, temp1, prec);
 
                 prime = primes[primeIndex++];
+
+                if (primeIndex % 50 == 0 && arb_gt(sum, rhs) == 1)
+                {
+                    break;
+                }
             }
-
-            arb_init(rhs);
-            arb_init(temp3);
-            arb_init(temp4);
-            arb_init(temp5);
-
-            arb_div(temp3, c, r, prec);
-            arb_mul(temp4, r, logq, prec);
-            arb_add(temp4, temp4, c, prec);
-            arb_div(rhs, temp3, temp4, prec);
-            arb_mul(temp5, constant1, logq, prec);
-            arb_add(rhs, rhs, temp5, prec);
-            arb_add(rhs, rhs, constant2, prec);
 
             // char *output = (char *) malloc(50 * sizeof(char));
             // output = arb_get_str(rhs, 40, 0);
@@ -217,14 +221,11 @@ int main(int argc, char** argv)
             if (arb_gt(sum, rhs) == 1)
             {
                 fprintf(outfile, "%ld,pass\n", q);
-            }else
+            }
+            else
             {
                 fprintf(outfile, "%ld,fail\n", q);
             }
-
-
-
-
         }
     }
 
