@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <flint/arb.h>
-#include <flint/long_extras.h>
+#include <flint/ulong_extras.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 
     long* primes = (long*)malloc(lenPrime * sizeof(long));
     int* chi_values = malloc(rows * cols * sizeof(int));
-    int result = read_kronecker(chi_values); //chi_values[i*cols+j-1] = z_kronecker(j, primes[i]) when 0<j<primes[i]
+    int result = read_kronecker(chi_values); //chi_values[(i-1)*cols+j-1] = z_kronecker(j, primes[i]) when 0<j<primes[i] and primes[i] is odd
 
     if (read_primes(primes) == 1 || result!=0)
     {
@@ -227,12 +227,23 @@ int main(int argc, char** argv)
                 // compute Kronecker symbol
                 int chi = 0;
                 if(primeIndex>=rows){ //if we have not precomputed this Kronecker symbol yet, use FLINT
-                    chi = z_kronecker(q, prime);
+                    chi = n_jacobi(q, prime);
+                }
+                else if(prime==2 && q%2 != 0){
+                    if(q%8==1 || q%8==-7){
+                        chi = 1;
+                    }
+                    else{
+                        chi = -1;
+                    }
                 }
                 else { //otherwise use the chi_values array to compute
                     long remainder = q%prime;
-                    if(remainder!=0){
-                        chi = chi_values[primeIndex*cols+q-1];
+                    if(remainder<0){
+                        remainder += prime;
+                    }
+                    if(remainder>0){
+                        chi = chi_values[(primeIndex-1)*cols+remainder-1];
                     }
                 }
                 

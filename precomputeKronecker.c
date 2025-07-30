@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <flint/arb.h>
-#include <flint/long_extras.h>
+#include <flint/ulong_extras.h>
 #include <time.h>
 #include<unistd.h>
 #include <stdbool.h>
@@ -49,14 +49,14 @@ int main(int argc, char** argv)
     read_primes(lenPrime, primes);
 
     printf("%d\n", primes[lenPrime-1]);
-    for (int i=0; i<lenPrime; i++)
+    for (int i=1; i<lenPrime; i++)
     {
         if(i%1000==999){
             printf("done %d\n", i);
         }
         long p = primes[i];
         for(int q=1; q<p; q++){
-            int chi = z_kronecker(q, p);
+            int chi = n_jacobi(q, p);
             if(chi==1){
                 fprintf(outfile, "R");
             }
