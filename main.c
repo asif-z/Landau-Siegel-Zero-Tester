@@ -147,6 +147,11 @@ int main(int argc, char** argv)
     arb_t term;
     arb_t rhs;
     arb_t r;
+    arb_t top;
+    arb_t bottom;
+    arb_t rhs_term_2;
+    arb_t div78; //equal to 7/8
+    arb_set_str(div78, "0.875", prec);
 
     // sets sigma, r
     arb_init(sigma);
@@ -193,14 +198,25 @@ int main(int argc, char** argv)
             arb_init(temp3);
             arb_init(temp4);
             arb_init(temp5);
+            arb_init(top);
+            arb_init(bottom);
+            arb_init(rhs_term_2);
 
             arb_div(temp3, c, r, prec);
             arb_mul(temp4, r, logq, prec);
             arb_add(temp4, temp4, c, prec);
             arb_div(rhs, temp3, temp4, prec);
+
             arb_mul(temp5, phi, logq, prec);
             arb_add(rhs, rhs, temp5, prec);
             arb_add(rhs, rhs, O1, prec);
+
+            arb_div(top, c, logq, prec);
+            arb_add(top, r, top, prec);
+            arb_add(bottom, r, div78, prec);
+            arb_mul(bottom, bottom, bottom, prec);
+            arb_div(rhs_term_2, top, bottom, prec);
+            arb_add(rhs, rhs, rhs_term_2, prec);
 
             // loop over primes until we exceed primeBd or the inequality is violated
             long prime = primes[0];
