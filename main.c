@@ -7,8 +7,20 @@
 #include <time.h>
 #include <unistd.h>
 
+//total number of primes precomputed
+#define lenPrime 500000
+//FLINT precision to use
+#define prec 50
+//max number of primes to add to the sum before truncating
+#define primeBd 20000
+//maximum modulus used
+#define qMax 100000000
+//dimensions of the Kronecker symbol array
+#define rows 10000
+#define cols 104729
+
 //read a list of primes
-int read_primes(long lenPrime, long* primes)
+int read_primes(long* primes)
 {
     FILE* file;
     int count = 0;
@@ -29,32 +41,69 @@ int read_primes(long lenPrime, long* primes)
     return 0;
 }
 
+// reads precomputed values of Kronecker symbol
+int read_kronecker(int* array) {
+    FILE* file = fopen("chi.txt", "rb");
+    if (!file) {
+        perror("Failed to open file");
+        return 1;
+    }
+
+    int ch = fgetc(file);
+    int i=0;
+    int j=0;
+    while(ch != EOF){      
+        if (ch == 'R') {
+            array[i*cols+j] = 1;
+        } else if (ch == 'N') {
+            array[i*cols +j] = -1;
+        } else if (ch == '\n'){
+            i++;
+            if(i%5000==0){
+                printf("Computed Kronecker symbol for %d primes\n", i);
+            }
+            j = -1;
+        }
+        else{
+            fprintf(stderr, "Invalid character '%c' at line %d, column %d\n", ch, i, j);
+            fclose(file);
+            return 3;
+        }
+        ch = fgetc(file);
+        j++;
+    }
+
+    fclose(file);
+    return 0;
+}
+
 int main(int argc, char** argv)
 {
-    //Constants
 
-    //len of prime
-    const long lenPrime = 500000;
+    arb_t lambda;
+    arb_t phi;
+    arb_t O1; //the O(1)+O(loglog(q)) term
+    arb_init(lambda);
+    arb_init(phi);
+    arb_init(O1);
 
-    //precision set up
-    long prec = 50;
+    //presets:
 
-    //set up prime len
-    long primeBd = 200000;
+    //small X (X~2000)
+    arb_set_str(lambda, "2.14", prec);
+    arb_set_str(phi, "0.219697", prec);
+    arb_set_str(O1, "1.33613", prec);
 
-    //set up length to calculate
-    long qMax = 100000000;
+    //large X (X~50000)
+    // arb_set_str(lambda, "1.6", prec);
+    // arb_set_str(phi, "0.22675", prec);
+    // arb_set_str(O1, "1.38794", prec);
+
 
     MPI_Init(&argc, &argv);
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    //set up lambda
-    arb_t lambda;
-    arb_init(lambda);
-    arb_set_d(lambda, 0.69165);
-
 
     clock_t start, end;
     if (rank == 0)
@@ -63,8 +112,10 @@ int main(int argc, char** argv)
     }
 
     long* primes = (long*)malloc(lenPrime * sizeof(long));
+    int* chi_values = malloc(rows * cols * sizeof(int));
+    int result = read_kronecker(chi_values); //chi_values[i*cols+j-1] = z_kronecker(j, primes[i]) when 0<j<primes[i]
 
-    if (read_primes(lenPrime, primes) == 1)
+    if (read_primes(primes) == 1 || result!=0)
     {
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
@@ -75,45 +126,36 @@ int main(int argc, char** argv)
         printf("Elapsed time after file reading: %.3f seconds\n", (double)(clock() - start) / CLOCKS_PER_SEC);
     }
 
+    arb_t c; // zero-free region constant
+    arb_init(c);
+    arb_set_str(c, "0.1", prec);
+
     // setting up variables
     arb_t logq;
     arb_t sigma;
     arb_t sum;
     arb_t logp;
-    arb_t con;
+    arb_t logQ;
     arb_t p;
     arb_t psigma;
     arb_t zeta_term;
     arb_t one; // equal to 1
     arb_init(one);
     arb_set_ui(one, 1);
-    arb_t temp1; //temp variables for calculations
-    arb_t temp2, temp3, temp4, temp5;
+    arb_t temp1, temp2, temp3, temp4, temp5; //temp variables for calculations
     arb_t l_term;
     arb_t term;
-    arb_t c;
-    arb_t constant1, constant2;
     arb_t rhs;
     arb_t r;
 
     // sets sigma, r
     arb_init(sigma);
-    arb_init(con);
+    arb_init(logQ);
     arb_init(temp1);
     arb_init(r);
-    arb_log_ui(con, 10000000000, prec);
-    arb_div(r, lambda, con, prec);
+    arb_log_ui(logQ, 10000000000, prec);
+    arb_div(r, lambda, logQ, prec);
     arb_add(sigma, one, r, prec);
-
-    // Set up c
-    arb_init(c);
-    arb_set_d(c, 0.01);
-
-    arb_init(constant1);
-    arb_init(constant2);
-    arb_set_d(constant1, 0.2469115);
-    arb_set_d(constant2, 3.865425);
-
 
     // Open separate output file per rank to avoid clashes
     char filename[100];
@@ -147,7 +189,6 @@ int main(int argc, char** argv)
             arb_init(sum);
 
             //calculate rhs
-
             arb_init(rhs);
             arb_init(temp3);
             arb_init(temp4);
@@ -157,17 +198,27 @@ int main(int argc, char** argv)
             arb_mul(temp4, r, logq, prec);
             arb_add(temp4, temp4, c, prec);
             arb_div(rhs, temp3, temp4, prec);
-            arb_mul(temp5, constant1, logq, prec);
+            arb_mul(temp5, phi, logq, prec);
             arb_add(rhs, rhs, temp5, prec);
-            arb_add(rhs, rhs, constant2, prec);
+            arb_add(rhs, rhs, O1, prec);
 
-            // loop over all primes < q^alpha
+            // loop over primes until we exceed primeBd or the inequality is violated
             long prime = primes[0];
             int primeIndex = 0;
             while (primeIndex < primeBd)
             {
-                int chi = z_kronecker(q, prime); //the value of chi(prime)
-
+                // compute Kronecker symbol
+                int chi = 0;
+                if(primeIndex>=rows){ //if we have not precomputed this Kronecker symbol yet, use FLINT
+                    chi = z_kronecker(q, prime);
+                }
+                else { //otherwise use the chi_values array to compute
+                    long remainder = q%prime;
+                    if(remainder!=0){
+                        chi = chi_values[primeIndex*cols+q-1];
+                    }
+                }
+                
                 // Calculating log(p)
                 arb_init(logp);
                 arb_log_ui(logp, prime, prec);
@@ -214,17 +265,13 @@ int main(int argc, char** argv)
                 }
             }
 
-            // char *output = (char *) malloc(50 * sizeof(char));
-            // output = arb_get_str(rhs, 40, 0);
-            // printf("%ld,%s\n",q,output);
-
             if (arb_gt(sum, rhs) == 1)
             {
-                fprintf(outfile, "%ld,pass\n", q);
+                fprintf(outfile, "%ld,P\n", q);
             }
             else
             {
-                fprintf(outfile, "%ld,fail\n", q);
+                fprintf(outfile, "%ld,F\n", q);
             }
         }
     }
