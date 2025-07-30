@@ -151,6 +151,7 @@ int main(int argc, char** argv)
     arb_t bottom;
     arb_t rhs_term_2;
     arb_t div78; //equal to 7/8
+    arb_init(div78);
     arb_set_str(div78, "0.875", prec);
 
     // sets sigma, r
