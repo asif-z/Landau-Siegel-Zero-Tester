@@ -12,9 +12,9 @@
 //FLINT precision to use
 #define prec 50
 //max number of primes to add to the sum before truncating
-#define primeBd 20000
+#define primeBd 10000
 //maximum modulus used
-#define qMax 10000000
+#define qMax 100000000
 //dimensions of the Kronecker symbol array
 #define rows 10000
 #define cols 104729
@@ -52,6 +52,7 @@ int read_kronecker(int* array) {
     int ch = fgetc(file);
     int i=0;
     int j=0;
+    printf("Computing Kronecker symbol...\n");
     while(ch != EOF){      
         if (ch == 'R') { //R signifies a residue, i.e. this value is 1
             array[i*cols+j] = 1;
@@ -59,9 +60,6 @@ int read_kronecker(int* array) {
             array[i*cols +j] = -1;
         } else if (ch == '\n'){
             i++;
-            if(i%5000==0){
-                printf("Computed Kronecker symbol for %d primes\n", i);
-            }
             j = -1;
         }
         else{
@@ -118,9 +116,9 @@ void loopQ(long begin, int step, int rank, clock_t start, arb_t lambda, arb_t ph
 
     for (long q = begin; q <= qMax; q+=step)
     {
-        if (rank == 0 && (q-begin)/step %100000==0) //print every time the first core does 100000 steps
+        if ((q-begin)/step %100000==0) //print every time the first core does 100000 steps
         {
-            printf("Elapsed time when q=%ld: %.3f seconds\n", q, (double)(clock() - start) / CLOCKS_PER_SEC);
+            printf("%d: Elapsed time when q=%ld: %.3f seconds\n", rank, q, (double)(clock() - start) / CLOCKS_PER_SEC);
         }
 
         if (q == 0) continue;
@@ -273,10 +271,7 @@ int main(int argc, char** argv)
     printf("rank: %d, size: %d\n", rank, size);
 
     clock_t start, end;
-    if (rank == 0)
-    {
-        start = clock(); // start timer on rank 0 only
-    }
+    start = clock(); // start timer on rank 0 only
 
     long* primes = (long*)malloc(lenPrime * sizeof(long));
     int* chi_values = (int*)malloc(rows * cols * sizeof(int));
@@ -301,7 +296,6 @@ int main(int argc, char** argv)
         perror("Error opening file");
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    fprintf(outfile,"aaa\n");
 
     //loop through all q
     long begin = 0; //the value q starts at for this core
