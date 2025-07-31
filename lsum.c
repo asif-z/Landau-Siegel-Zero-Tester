@@ -53,15 +53,15 @@ int main(int argc, char** argv)
 
     //presets:
 
-    //small X (X~2000)
-    arb_set_str(lambda, "2.14", prec);
-    arb_set_str(phi, "0.219697", prec);
-    arb_set_str(O1, "1.33613", prec);
+    //small X (pi(X)~7000)
+    arb_set_str(lambda, "1.45", prec);
+    arb_set_str(phi, "0.228774", prec);
+    arb_set_str(O1, "1.4894", prec);
 
-    //large X (X~50000)
-    // arb_set_str(lambda, "1.6", prec);
-    // arb_set_str(phi, "0.22675", prec);
-    // arb_set_str(O1, "1.38794", prec);
+    //large X (pi(X)~200000)
+    // arb_set_str(lambda, "1.3", prec);
+    // arb_set_str(phi, "0.23083", prec);
+    // arb_set_str(O1, "1.50458", prec);
 
 
     clock_t start, end;

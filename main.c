@@ -14,12 +14,12 @@
 //max number of primes to add to the sum before truncating
 #define primeBd 20000
 //maximum modulus used
-#define qMax 100000000
+#define qMax 10000000
 //dimensions of the Kronecker symbol array
 #define rows 10000
 #define cols 104729
 
-//read a list of primes
+//reads a precomputed list of primes
 int read_primes(long* primes)
 {
     FILE* file;
@@ -53,9 +53,9 @@ int read_kronecker(int* array) {
     int i=0;
     int j=0;
     while(ch != EOF){      
-        if (ch == 'R') {
+        if (ch == 'R') { //R signifies a residue, i.e. this value is 1
             array[i*cols+j] = 1;
-        } else if (ch == 'N') {
+        } else if (ch == 'N') { //N signifies nonresidue, i.e. this value is -1
             array[i*cols +j] = -1;
         } else if (ch == '\n'){
             i++;
@@ -77,6 +77,7 @@ int read_kronecker(int* array) {
     return 0;
 }
 
+// loops through all the moduli assigned to one core
 void loopQ(long begin, int step, int rank, clock_t start, arb_t lambda, arb_t phi, arb_t O1, int* chi_values, long* primes, FILE* outfile){
     arb_t c; // zero-free region constant
     arb_init(c);
@@ -117,7 +118,7 @@ void loopQ(long begin, int step, int rank, clock_t start, arb_t lambda, arb_t ph
 
     for (long q = begin; q <= qMax; q+=step)
     {
-        if (q % 100000 == 0 & rank == 0)
+        if (rank == 0 && (q-begin)/step %100000==0) //print every time the first core does 100000 steps
         {
             printf("Elapsed time when q=%ld: %.3f seconds\n", q, (double)(clock() - start) / CLOCKS_PER_SEC);
         }
@@ -244,7 +245,6 @@ void loopQ(long begin, int step, int rank, clock_t start, arb_t lambda, arb_t ph
 int main(int argc, char** argv)
 {
 
-    printf("hel\n");
     arb_t lambda;
     arb_t phi;
     arb_t O1; //the O(1)+O(loglog(q)) term
@@ -254,22 +254,23 @@ int main(int argc, char** argv)
 
     //presets:
 
-    //small X (X~2000)
-    arb_set_str(lambda, "2.14", prec);
-    arb_set_str(phi, "0.219697", prec);
-    arb_set_str(O1, "1.33613", prec);
+    //small X (pi(X)~7000)
+    arb_set_str(lambda, "1.45", prec);
+    arb_set_str(phi, "0.228774", prec);
+    arb_set_str(O1, "1.4894", prec);
 
-    //large X (X~50000)
-    // arb_set_str(lambda, "1.6", prec);
-    // arb_set_str(phi, "0.22675", prec);
-    // arb_set_str(O1, "1.38794", prec);
+    //large X (pi(X)~200000)
+    // arb_set_str(lambda, "1.3", prec);
+    // arb_set_str(phi, "0.23083", prec);
+    // arb_set_str(O1, "1.50458", prec);
 
 
     MPI_Init(&argc, &argv);
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    printf("%d %d", rank, size);
+
+    printf("rank: %d, size: %d\n", rank, size);
 
     clock_t start, end;
     if (rank == 0)
@@ -280,7 +281,6 @@ int main(int argc, char** argv)
     long* primes = (long*)malloc(lenPrime * sizeof(long));
     int* chi_values = (int*)malloc(rows * cols * sizeof(int));
     int result = read_kronecker(chi_values); //chi_values[(i-1)*cols+j-1] = z_kronecker(j, primes[i]) when 0<j<primes[i] and primes[i] is odd
-
     if (read_primes(primes) == 1 || result!=0)
     {
         MPI_Abort(MPI_COMM_WORLD, 1);
@@ -301,31 +301,28 @@ int main(int argc, char** argv)
         perror("Error opening file");
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
+    fprintf(outfile,"aaa\n");
 
     //loop through all q
-    long begin = 0;
-    int step = 0;
-    int numEven = (size+1)/2;
-    int numOdd = size/2;
+    long begin = 0; //the value q starts at for this core
+    int step = 0; //how much q increases by every iteration
+    int numEven = (size+1)/2; //number of even-indexed cores
+    int numOdd = size/2; //number of odd-indexed cores
     if(rank%2==0){ // if the rank is even, loop through q that are 1 mod 4
         begin = -qMax+1 + 4*(rank/2);
-        step = 4*numEven;
+        step = 4*numEven; //evenly distribute the q's that are 1mod4 among the even-indexed cores
     }
-    else if(numOdd==0){ // if the rank is odd, loop through q that are 0 mod 4
-        begin = -qMax;
-        step = 4;
-    }
-    else{
+    else{ // if the rank is odd, loop through q that are 0 mod 4
         begin = -qMax + 4*(rank/2);
-        step = 4*numOdd;
+        step = 4*numOdd; //evenly distribute the q's that are 0mod4 among the odd-indexed cores
     }
 
     loopQ(begin, step, rank, start, lambda, phi, O1, chi_values, primes, outfile);
-    
+    if (size==1) { // if there are not multiple threads then we need to do all the calculations on one thread
+        loopQ(-qMax, 4, rank, start, lambda, phi, O1, chi_values, primes, outfile);
+    }
 
     fclose(outfile);
-
-    
 
     MPI_Finalize();
 
