@@ -5,11 +5,17 @@ set(CMAKE_C_STANDARD 11)
 
 find_package(MPI REQUIRED)
 
-add_executable(mpiTest
-        main.c)
+enable_testing()
 
-target_link_libraries(mpiTest PRIVATE MPI::MPI_C)
+add_subdirectory(test)
 
-target_link_libraries(mpiTest PRIVATE flint mpfr gmp m)
+add_subdirectory(src)
 
-configure_file(${CMAKE_SOURCE_DIR}/primes.txt ${CMAKE_BINARY_DIR}/primes.txt COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/input/primes.txt ${CMAKE_BINARY_DIR}/primes.txt COPYONLY)
+
+configure_file(${CMAKE_SOURCE_DIR}/input/chi.txt ${CMAKE_BINARY_DIR}/chi.txt COPYONLY)
+
+configure_file(${CMAKE_SOURCE_DIR}/input/primes.txt ${CMAKE_BINARY_DIR}/test/primes.txt COPYONLY)
+
+configure_file(${CMAKE_SOURCE_DIR}/input/chi.txt ${CMAKE_BINARY_DIR}/test/chi.txt COPYONLY)
+
