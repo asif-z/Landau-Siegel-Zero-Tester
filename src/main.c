@@ -1,11 +1,10 @@
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
 #include <flint/arb.h>
-#include <flint/ulong_extras.h>
-#include <unistd.h>
-#include <flint/long_extras.h>
+#include <sys/stat.h>
+#include <time.h>
 #include <mpi.h>
+#include <stdbool.h>
 #include "primes.h"
 #include "buffered_chi.h"
 
@@ -32,12 +31,12 @@ primeiter primes;
 
 // setting up gloabl variables
 arb_t c; // zero-free region constant
-arb_t sigma;
+arb_t sigma; //1+r
 arb_t phi;
 arb_t O1; //the O(1)+O(loglog(q)) term
 arb_t r;
-arb_t div78;
-arb_t one;
+arb_t div78; //constant 7/8
+arb_t one; //constant 1
 
 int init_variables()
 {
@@ -92,6 +91,10 @@ int init_variables()
     arb_clear(lambda);
     arb_clear(logQ);
     return 0;
+}
+
+bool is_valid_q(slong q) {
+    return q != 0 && q != 1 && (q % 4 == 0 || q % 4 == 1 || q % 4 == -3);
 }
 
 void compute_rhs(slong q, arb_t rhs)
@@ -208,14 +211,14 @@ slong compute(slong q)
         arb_add(sum, sum, temp1, prec);
 
 
-        if (primes.index - 50 == 0)
-        {
-            printf("sum for %d:", q);
-            arb_printd(sum, 15); // prints in standard interval notation
-            printf("\n");
-        }
+        // if (primes.index - 50 == 0)
+        // {
+        //     printf("sum for %ld:", q);
+        //     arb_printd(sum, 15); // prints in standard interval notation
+        //     printf("\n");
+        // }
 
-        if (get_next_prime(&primes)==-1)
+        if (get_next_prime(&primes) == -1)
         {
             break;
         }
@@ -258,6 +261,18 @@ int main(int argc, char** argv)
         MPI_Finalize();
         return 1;
     }
+
+    char foldername[64];
+    // Create a unique folder name using timestamp
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    snprintf(foldername, sizeof(foldername), "run_%04d%02d%02d_%02d%02d%02d",
+             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+             tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+    // Create the folder
+    mkdir(foldername, 0755);
+
 
     if (rank == 0)
     {
@@ -311,8 +326,8 @@ int main(int argc, char** argv)
         printf("Files loaded at rank %d: %f\n", rank, MPI_Wtime() - start);
 
         FILE* outfile;
-        char filename[64];
-        snprintf(filename, sizeof(filename), "output_rank_%d.csv", rank);
+        char filename[256];
+        snprintf(filename, sizeof(filename), "%s/output_rank_%d.csv", foldername, rank);
         outfile = fopen(filename, "w");
 
         if (!outfile)
@@ -332,10 +347,7 @@ int main(int argc, char** argv)
 
             for (slong q = cur; q < cur + step && q < qMax; q++)
             {
-                if (q == 0) continue;
-                if (q == 1) continue;
-
-                if (q % 4 == 0 || q % 4 == 1 || q % 4 == -3)
+                if (is_valid_q(q))
                 {
                     slong result = compute(q);
                     if (result < 0)
