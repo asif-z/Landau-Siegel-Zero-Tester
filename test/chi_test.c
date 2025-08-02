@@ -12,10 +12,10 @@
 int main(int argc, char* argv[])
 {
     buffered_chi chi;
-    chi_init(&chi, rows, cols, "chi.txt");
+    chi_init(&chi, rows, cols, "input/chi.txt");
 
     primeiter primes;
-    primeiter_init(&primes, "primes.txt", 50000);
+    primeiter_init(&primes, "input/primes.txt", 50000);
     for (int q = -100; q < 100; q++)
     {
         do

@@ -42,4 +42,6 @@ void compute_rhs(compute_config *compute_c,slong q, arb_t rhs);
 
 slong compute(compute_config *compute_c, slong q);
 
+void compute_first_n(arb_t sum, compute_config *compute_c, slong q, slong n);
+
 #endif //COMPUTE_H

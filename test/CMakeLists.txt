@@ -3,8 +3,10 @@
 add_executable(unitTest
 #        primes_test.c
         ../src/primes.c
-        chi_test.c
+#        chi_test.c
         ../src/buffered_chi.c
+        ../src/compute.c
+        computation_test.c
 )
 
 target_include_directories(unitTest PRIVATE ${CMAKE_SOURCE_DIR})

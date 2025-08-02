@@ -125,6 +125,8 @@ slong compute(compute_config *compute_c, slong q)
     arb_t term;
 
     arb_init(sum);
+    arb_init(temp1);
+    arb_init(temp2);
 
     set_index(&(compute_c->primes), 0);
 
@@ -208,4 +210,98 @@ slong compute(compute_config *compute_c, slong q)
     arb_clear(p);
     arb_clear(psigma);
     return -1;
+}
+
+void compute_first_n(arb_t sum, compute_config *compute_c, slong q, slong n)
+{
+    arb_t rhs;
+    compute_rhs(compute_c, q, rhs);
+
+    // printf("rhs at %ld:", q);
+    // arb_printd(rhs,15);       // prints in standard interval notation
+    // printf("\n");
+
+    // loop over primes until we exceed primeBd or the inequality is violated
+
+    //calculate the partial sum;
+    arb_t logp;
+    arb_t p;
+    arb_t psigma;
+    arb_t zeta_term;
+    arb_t temp1;
+    arb_t l_term;
+    arb_t temp2;
+    arb_t term;
+
+    arb_init(sum);
+    arb_init(temp1);
+    arb_init(temp2);
+
+    set_index(&(compute_c->primes), 0);
+
+    while (compute_c->primes.index < n)
+    {
+        // compute Kronecker symbol
+        int chi = chi_val(&compute_c->chi_value, q, compute_c->primes.cur_prime, compute_c->primes.index);
+
+        // Calculating log(p)
+        arb_init(logp);
+        arb_log_ui(logp, compute_c->primes.cur_prime, prec);
+
+        // Calculating p^sigma
+        arb_init(p);
+        arb_set_ui(p, compute_c->primes.cur_prime);
+        arb_init(psigma);
+        arb_pow(psigma, p, compute_c->sigma, prec);
+
+        // The infinite sum from the p terms for zeta is 1/(p^sigma -1)
+        arb_init(zeta_term);
+        arb_init(temp1);
+        arb_sub(temp1, psigma, compute_c->one, prec);
+        arb_inv(zeta_term, temp1, prec);
+
+        // The infinite sum from the p terms for L is chi(p)/(p^sigma -chi(p))
+        arb_init(l_term);
+        if (chi == 1)
+        {
+            arb_set(l_term, zeta_term);
+        }
+        else if (chi == -1)
+        {
+            arb_init(temp1);
+            arb_init(temp2);
+            arb_add(temp1, psigma, compute_c->one, prec);
+            arb_inv(temp2, temp1, prec);
+            arb_neg(l_term, temp2);
+        }
+
+        // add log(p)*(zeta_term + l_term) to the sum
+        arb_init(term);
+        arb_init(temp1);
+        arb_add(term, zeta_term, l_term, prec);
+        arb_mul(temp1, term, logp, prec);
+        arb_add(sum, sum, temp1, prec);
+
+
+        // if (primes.index - 50 == 0)
+        // {
+        //     printf("sum for %ld:", q);
+        //     arb_printd(sum, 15); // prints in standard interval notation
+        //     printf("\n");
+        // }
+
+        if (get_next_prime(&compute_c->primes) == -1)
+        {
+            printf("out of bound!");
+            break;
+        }
+    }
+    arb_clear(logp);
+    arb_clear(temp1);
+    arb_clear(temp2);
+    arb_clear(term);
+    arb_clear(zeta_term);
+    arb_clear(l_term);
+    arb_clear(p);
+    arb_clear(psigma);
 }

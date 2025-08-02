@@ -7,7 +7,7 @@
 int main(int argc, char* argv[])
 {
     primeiter primes;
-    primeiter_init(&primes, "primes.txt", 50000);
+    primeiter_init(&primes, "input/primes.txt", 50000);
     n_primes_t iter;
     n_primes_init(iter);
     do
