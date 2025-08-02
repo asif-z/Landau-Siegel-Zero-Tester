@@ -3,6 +3,7 @@ add_executable(mpiTest
         main.c
         primes.c
         buffered_chi.c
+        compute.c
 )
 
 target_include_directories(mpiTest PRIVATE ${CMAKE_SOURCE_DIR})
