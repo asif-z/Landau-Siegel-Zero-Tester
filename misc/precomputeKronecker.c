@@ -12,7 +12,7 @@ int read_primes(long lenPrime, long* primes)
 {
     FILE* file;
     int count = 0;
-    file = fopen("primes.txt", "r");
+    file = fopen("input/primes.txt", "r");
     if (file == NULL)
     {
         perror("Error opening file");
