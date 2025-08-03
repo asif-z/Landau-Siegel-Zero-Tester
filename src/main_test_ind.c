@@ -6,6 +6,77 @@
 
 #define MAX_NUMBERS 100000  // Change this as needed
 
+
+//total number of primes precomputed
+#define lenPrime 5000001
+//FLINT precision to use
+#define prec0 50
+//max number of primes to add to the sum before truncating
+#define primeBd0 5000000
+//dimensions of the Kronecker symbol array
+#define rows 10000
+#define cols 104729
+
+
+int init_variables(compute_config *compute_c)
+{
+
+    compute_c->prec = prec0;
+    compute_c->primeBd = primeBd0;
+
+    if (primeiter_init(&(compute_c->primes), "input/primes.txt",primeBd0) != 0)
+    {
+        return 1;
+    }
+    if (chi_init(&(compute_c->chi_value), rows, cols, "input/chi.txt") != 0)
+    {
+        return 2;
+    }
+
+    //Set up zero-free region
+    arb_init(compute_c->c);
+    arb_set_str(compute_c->c, "0.1", prec0);
+
+    //init var
+    arb_t lambda;
+    arb_t logQ;
+
+    arb_init(lambda);
+    arb_init(compute_c->phi);
+    arb_init(compute_c->O1);
+
+    arb_init(compute_c->one);
+    arb_set_ui(compute_c->one, 1);
+
+    arb_init(compute_c->div78);
+    arb_set_str(compute_c->div78, "0.875", prec0);
+
+    //presets:
+
+    //small X (pi(X)~7000)
+    // arb_set_str(lambda, "1.45", prec0);
+    // arb_set_str(compute_c->phi, "0.228774", prec0);
+    // arb_set_str(compute_c->O1, "1.4894", prec0);
+
+    //large X (pi(X)~200000)
+    arb_set_str(lambda, "1.3", prec0);
+    arb_set_str(compute_c->phi, "0.23083", prec0);
+    arb_set_str(compute_c->O1, "1.50458", prec0);
+
+    // sets sigma, r
+    arb_init(compute_c->sigma);
+    arb_init(logQ);
+    arb_init(compute_c->r);
+    arb_log_ui(logQ, 10000000000, prec0);
+    arb_div(compute_c->r, lambda, logQ, prec0);
+    arb_add(compute_c->sigma, compute_c->one, compute_c->r, prec0);
+
+    //
+    arb_clear(lambda);
+    arb_clear(logQ);
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     FILE *file, *outputFile;

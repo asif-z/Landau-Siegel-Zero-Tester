@@ -12,6 +12,9 @@
 
 typedef struct compute_config
 {
+    long primeBd;
+    long prec;
+
     //Global variables for buffers
     buffered_chi chi_value;
     primeiter primes;
@@ -24,9 +27,8 @@ typedef struct compute_config
     arb_t r;
     arb_t div78; //constant 7/8
     arb_t one; //constant 1
-}compute_config;
 
-int init_variables(compute_config *compute_c);
+}compute_config;
 
 void compute_rhs(compute_config *compute_c,slong q, arb_t rhs);
 
