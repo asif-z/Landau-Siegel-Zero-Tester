@@ -25,7 +25,7 @@
 #define qMax 10000
 slong const step = 1000;
 
-compute_config compute_c;
+compute_config compute_c0;
 
 int init_variables(compute_config* compute_c)
 {
@@ -147,7 +147,7 @@ int worker_run(int rank, char foldername[64])
     double start = MPI_Wtime();
 
     printf("Worker %d started\n", rank);
-    int code = init_variables(&compute_c);
+    int code = init_variables(&compute_c0);
     if (code != 0)
     {
         MPI_Abort(MPI_COMM_WORLD, code);
@@ -180,7 +180,7 @@ int worker_run(int rank, char foldername[64])
         {
             if (is_valid_q(q))
             {
-                slong result = compute(&compute_c, q);
+                slong result = compute(&compute_c0, q);
                 if (result < 0)
                 {
                     fprintf(outfile, "%ld,fail,%ld\n", q, result);
