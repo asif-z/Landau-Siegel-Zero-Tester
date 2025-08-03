@@ -1,7 +1,15 @@
 
 #include "compute.h"
 
-
+//total number of primes precomputed
+#define lenPrime 500000
+//FLINT precision to use
+#define prec 50
+//max number of primes to add to the sum before truncating
+#define primeBd 100000
+//dimensions of the Kronecker symbol array
+#define rows 10000
+#define cols 104729
 
 int init_variables(compute_config *compute_c)
 {
