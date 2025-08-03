@@ -25,11 +25,10 @@
 #define qMax 10000
 slong const step = 1000;
 
-compute_config compute_c;
+compute_config compute_c0;
 
-int init_variables(compute_config *compute_c)
+int init_variables(compute_config* compute_c)
 {
-
     compute_c->prec = prec0;
     compute_c->primeBd = primeBd0;
 
@@ -88,22 +87,28 @@ int init_variables(compute_config *compute_c)
 
 bool is_valid_q(slong q)
 {
-    return q != 0 && q != 1 && (q % 4 == 0 || q % 4 == 1 || q % 4 == -3);
+    return q != 0 && q != 1 && (q % 16 == 8 || q % 16 == 12 || q % 16 == -8 || q % 16 == -4 || q % 4 == 1 || q % 4 == -
+        3);
 }
 
-int master_run(int size) {
+int master_run(int size)
+{
     printf("Master started\n");
     fflush(stdout);
     slong cur = -qMax;
     MPI_Status status;
-    int active_workers = size - 1;  // Track active workers
+    int active_workers = size - 1; // Track active workers
 
     // Assign initial jobs or stop signals
-    for (int i = 1; i < size; i++) {
-        if (cur < qMax) {
+    for (int i = 1; i < size; i++)
+    {
+        if (cur < qMax)
+        {
             MPI_Send(&cur, 1, MPI_LONG_LONG_INT, i, JOB_TAG, MPI_COMM_WORLD);
             cur += step;
-        } else {
+        }
+        else
+        {
             // Send stop immediately if no jobs left
             MPI_Send(NULL, 0, MPI_LONG_LONG_INT, i, STOP_TAG, MPI_COMM_WORLD);
             active_workers--;
@@ -111,17 +116,21 @@ int master_run(int size) {
     }
 
     // Manage active workers
-    while (active_workers > 0) {
+    while (active_workers > 0)
+    {
         int dummy;
         // Wait for worker ready signal
         MPI_Recv(&dummy, 1, MPI_INT, MPI_ANY_SOURCE, JOB_TAG, MPI_COMM_WORLD, &status);
         int worker_rank = status.MPI_SOURCE;
 
-        if (cur < qMax) {
+        if (cur < qMax)
+        {
             // Send next job
             MPI_Send(&cur, 1, MPI_LONG_LONG_INT, worker_rank, JOB_TAG, MPI_COMM_WORLD);
             cur += step;
-        } else {
+        }
+        else
+        {
             // Send stop and deactivate worker
             MPI_Send(NULL, 0, MPI_LONG_LONG_INT, worker_rank, STOP_TAG, MPI_COMM_WORLD);
             active_workers--;
@@ -138,7 +147,7 @@ int worker_run(int rank, char foldername[64])
     double start = MPI_Wtime();
 
     printf("Worker %d started\n", rank);
-    int code = init_variables(&compute_c);
+    int code = init_variables(&compute_c0);
     if (code != 0)
     {
         MPI_Abort(MPI_COMM_WORLD, code);
@@ -171,7 +180,7 @@ int worker_run(int rank, char foldername[64])
         {
             if (is_valid_q(q))
             {
-                slong result = compute(&compute_c, q);
+                slong result = compute(&compute_c0, q);
                 if (result < 0)
                 {
                     fprintf(outfile, "%ld,fail,%ld\n", q, result);
