@@ -10,18 +10,11 @@
 #include "primes.h"
 #include "buffered_chi.h"
 
-//total number of primes precomputed
-#define lenPrime 500000
-//FLINT precision to use
-#define prec 50
-//max number of primes to add to the sum before truncating
-#define primeBd 100000
-//dimensions of the Kronecker symbol array
-#define rows 10000
-#define cols 104729
-
 typedef struct compute_config
 {
+    long primeBd;
+    long prec;
+
     //Global variables for buffers
     buffered_chi chi_value;
     primeiter primes;
@@ -34,9 +27,8 @@ typedef struct compute_config
     arb_t r;
     arb_t div78; //constant 7/8
     arb_t one; //constant 1
-}compute_config;
 
-int init_variables(compute_config *compute_c);
+}compute_config;
 
 void compute_rhs(compute_config *compute_c,slong q, arb_t rhs);
 

@@ -1,6 +1,7 @@
 
 add_executable(mpiTest
-        main.c
+#        main.c
+        main_test_ind.c
         primes.c
         buffered_chi.c
         compute.c
