@@ -2,11 +2,11 @@
 #include "compute.h"
 
 //total number of primes precomputed
-#define lenPrime 500000
+#define lenPrime 5000001
 //FLINT precision to use
 #define prec 50
 //max number of primes to add to the sum before truncating
-#define primeBd 100000
+#define primeBd 5000000
 //dimensions of the Kronecker symbol array
 #define rows 10000
 #define cols 104729
@@ -49,8 +49,8 @@ int init_variables(compute_config *compute_c)
 
     //large X (pi(X)~200000)
     // arb_set_str(lambda, "1.3", prec);
-    // arb_set_str(phi, "0.23083", prec);
-    // arb_set_str(O1, "1.50458", prec);
+    // arb_set_str(compute_c->phi, "0.23083", prec);
+    // arb_set_str(compute_c->O1, "1.50458", prec);
 
     // sets sigma, r
     arb_init(compute_c->sigma);
