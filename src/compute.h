@@ -30,10 +30,10 @@ typedef struct compute_config
 
 }compute_config;
 
-void compute_rhs(compute_config *compute_c,slong q, arb_t rhs);
+void compute_rhs(compute_config *compute_c, long q, arb_t rhs);
 
-slong compute(compute_config *compute_c, slong q);
+long compute(compute_config *compute_c, long q);
 
-void compute_first_n(arb_t sum, compute_config *compute_c, slong q, slong n);
+void compute_first_n(arb_t sum, compute_config *compute_c, long q, long n);
 
 #endif //COMPUTE_H

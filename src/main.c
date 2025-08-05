@@ -23,7 +23,7 @@
 
 //maximum modulus used
 #define qMax 10000
-slong const step = 1000;
+long const step = 1000;
 
 compute_config compute_c0;
 
@@ -85,7 +85,7 @@ int init_variables(compute_config* compute_c)
     return 0;
 }
 
-bool is_valid_q(slong q)
+bool is_valid_q(long q)
 {
     return q != 0 && q != 1 && (q % 16 == 8 || q % 16 == 12 || q % 16 == -8 || q % 16 == -4 || q % 4 == 1 || q % 4 == -
         3);
@@ -95,7 +95,7 @@ int master_run(int size)
 {
     printf("Master started\n");
     fflush(stdout);
-    slong cur = -qMax;
+    long cur = -qMax;
     MPI_Status status;
     int active_workers = size - 1; // Track active workers
 
@@ -142,7 +142,7 @@ int master_run(int size)
 int worker_run(int rank, char foldername[64])
 {
     MPI_Status status;
-    slong cur;
+    long cur;
 
     double start = MPI_Wtime();
 
@@ -176,11 +176,11 @@ int worker_run(int rank, char foldername[64])
         // Process job
         printf("%ld at worker %d\n", cur, rank);
 
-        for (slong q = cur; q < cur + step && q < qMax; q++)
+        for (long q = cur; q < cur + step && q < qMax; q++)
         {
             if (is_valid_q(q))
             {
-                slong result = compute(&compute_c0, q);
+                long result = compute(&compute_c0, q);
                 if (result < 0)
                 {
                     fprintf(outfile, "%ld,fail,%ld\n", q, result);

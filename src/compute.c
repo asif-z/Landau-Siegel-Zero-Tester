@@ -2,7 +2,7 @@
 #include "compute.h"
 
 
-void compute_rhs(compute_config *compute_c,slong q, arb_t rhs)
+void compute_rhs(compute_config *compute_c,long q, arb_t rhs)
 {
     //init var
     arb_init(rhs);
@@ -46,7 +46,7 @@ void compute_rhs(compute_config *compute_c,slong q, arb_t rhs)
     arb_clear(top);
 }
 
-slong compute(compute_config *compute_c, slong q)
+long compute(compute_config *compute_c, long q)
 {
     arb_t rhs;
     compute_rhs(compute_c, q, rhs);
@@ -156,7 +156,7 @@ slong compute(compute_config *compute_c, slong q)
     return -1;
 }
 
-void compute_first_n(arb_t sum, compute_config *compute_c, slong q, slong n)
+void compute_first_n(arb_t sum, compute_config *compute_c, long q,long n)
 {
     arb_t rhs;
     compute_rhs(compute_c, q, rhs);
