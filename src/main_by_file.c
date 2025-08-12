@@ -12,11 +12,11 @@
 #define FOLDERNAME_LEN 64
 
 //total number of primes precomputed
-#define lenPrime 5000001
+#define lenPrime 500001
 //FLINT precision to use
 #define prec0 50
 //max number of primes to add to the sum before truncating
-#define primeBd0 5000000
+#define primeBd0 500000
 //dimensions of the Kronecker symbol array
 #define rows 10000
 #define cols 104729
@@ -62,14 +62,14 @@ int init_variables(compute_config* compute_c)
     //presets:
 
     //small X (pi(X)~7000)
-    arb_set_str(lambda, "1.45", prec0);
-    arb_set_str(compute_c->phi, "0.228774", prec0);
-    arb_set_str(compute_c->O1, "1.4894", prec0);
+    // arb_set_str(lambda, "1.45", prec0);
+    // arb_set_str(compute_c->phi, "0.228774", prec0);
+    // arb_set_str(compute_c->O1, "1.4894", prec0);
 
     //large X (pi(X)~200000)
-    // arb_set_str(lambda, "1.3", prec0);
-    // arb_set_str(compute_c->phi, "0.23083", prec0);
-    // arb_set_str(compute_c->O1, "1.50458", prec0);
+    arb_set_str(lambda, "1.3", prec0);
+    arb_set_str(compute_c->phi, "0.23083", prec0);
+    arb_set_str(compute_c->O1, "1.50458", prec0);
 
     // sets sigma, r
     arb_init(compute_c->sigma);
