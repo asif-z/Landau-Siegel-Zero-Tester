@@ -22,8 +22,8 @@
 #define cols 104729
 
 //maximum modulus used
-#define lineMax 956
-long const step = 100;
+#define lineMax 3802686
+long const step = 10000;
 
 compute_config compute_c0;
 
