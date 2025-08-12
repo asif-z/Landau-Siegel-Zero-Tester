@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
     long numbers[MAX_NUMBERS];
     int count = 0;
 
-    file = fopen("input/output.txt", "r");
+    file = fopen("input/input.txt", "r");
     if (file == NULL) {
         perror("Error opening file");
         return 1;

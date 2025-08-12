@@ -56,7 +56,7 @@ int chi_init(buffered_chi* chi_t, long rows, long cols, char* filename)
 }
 
 
-int chi_val(buffered_chi* chi_t, const slong q, const long prime, const ulong primeIndex)
+int chi_val(buffered_chi* chi_t, const long q, const long prime, const long primeIndex)
 {
     // compute Kronecker symbol
     int chi = 0;
