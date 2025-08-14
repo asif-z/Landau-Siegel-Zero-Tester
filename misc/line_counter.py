@@ -2,13 +2,13 @@
 
 fname = input("Enter the file name: ")
 
-f = open(fname,"r").strip()
+f = open(fname, "r").strip()
 
 counter = 0;
 
 for line in f:
-    counter+=1
+    counter += 1
 
 f.close()
 
-print("Line count: "+ str(counter))
+print("Line count: " + str(counter))
