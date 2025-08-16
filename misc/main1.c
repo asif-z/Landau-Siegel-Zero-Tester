@@ -79,6 +79,11 @@ int init_variables()
     // arb_set_str(phi, "0.23344604", prec);
     // arb_set_str(O1, "1.09531399", prec);
 
+    //extremely large X (pi(X)~ 5million)
+    // arb_set_str(lambda, "1", prec);
+    // arb_set_str(phi, "0.235032993", prec);
+    // arb_set_str(O1, "1.10741261", prec);
+
     // sets sigma, r
     arb_init(sigma);
     arb_init(logQ);
