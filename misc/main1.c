@@ -69,15 +69,15 @@ int init_variables()
 
     //presets:
 
-    //small X (pi(X)~7000)
-    arb_set_str(lambda, "1.45", prec);
-    arb_set_str(phi, "0.228774", prec);
-    arb_set_str(O1, "1.4894", prec);
+    //small X (pi(X)~10000)
+    arb_set_str(lambda, "1.4526", prec);
+    arb_set_str(phi, "0.22910585", prec);
+    arb_set_str(O1, "1.0627878", prec);
 
-    //large X (pi(X)~200000)
-    // arb_set_str(lambda, "1.3", prec);
-    // arb_set_str(phi, "0.23083", prec);
-    // arb_set_str(O1, "1.50458", prec);
+    //large X (pi(X)~ 540,000)
+    // arb_set_str(lambda, "1.1122", prec);
+    // arb_set_str(phi, "0.23344604", prec);
+    // arb_set_str(O1, "1.09531399", prec);
 
     // sets sigma, r
     arb_init(sigma);
