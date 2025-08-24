@@ -15,6 +15,7 @@ int main(int argc, char* argv[])
     chi_init(&chi, rows, cols, "input/chi.txt");
 
     primeiter primes;
+    printf("aaaaaaaaaaaa ");
     primeiter_init(&primes, "input/primes.txt", 50000);
     for (int q = -100; q < 100; q++)
     {

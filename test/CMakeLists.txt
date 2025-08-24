@@ -6,6 +6,7 @@ add_executable(unitTest
 #        chi_test.c
         ../src/buffered_chi.c
         ../src/compute.c
+        ../src/presets.c
         computation_test.c
 )
 
