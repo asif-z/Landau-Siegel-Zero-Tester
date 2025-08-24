@@ -20,6 +20,8 @@
 #define prec0 50
 //max number of primes to add to the sum before truncating
 #define N00 5000000
+//number of primes to add to the sum before verifying if it is violated
+#define checkDistance0 5000
 //dimensions of the Kronecker symbol array
 #define rows 10000
 #define cols 104729
@@ -36,6 +38,7 @@ int init_variables(compute_config* compute_c)
 {
     compute_c->prec = prec0;
     compute_c->N0 = N00;
+    compute_c->checkDistance = checkDistance0;
 
     if (primeiter_init(&(compute_c->primes), "input/primes.txt",N00) != 0)
     {
@@ -72,6 +75,8 @@ int init_variables(compute_config* compute_c)
 
     arb_clear(lambda);
     arb_clear(logQ);
+
+    compute_zeta_sum(compute_c);
     return 0;
 }
 

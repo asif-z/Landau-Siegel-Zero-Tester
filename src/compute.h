@@ -14,10 +14,12 @@ typedef struct compute_config
 {
     long N0; //the maximum number of primes we will sum up to
     long prec; // number of bits of precision to use in calculations
+    long checkDistance; // number of primes to add to the sum before verifying if it is violated
 
     //Global variables for buffers
     buffered_chi chi_value;
     primeiter primes;
+    arb_t* zetaSums;
 
     // setting up global variables
     arb_t c; // the zero-free region constant
@@ -29,6 +31,8 @@ typedef struct compute_config
 }compute_config;
 
 void compute_rhs(compute_config *compute_c, long d, arb_t rhs);
+
+void compute_zeta_sum(compute_config *compute_c);
 
 long compute(compute_config *compute_c, long d);
 
