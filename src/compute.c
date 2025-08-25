@@ -166,11 +166,6 @@ long compute(compute_config *compute_c, long d)
         arb_mul(temp1, l_term, logp, compute_c->prec);
         arb_add(sum, sum, temp1, compute_c->prec);
 
-        if (get_next_prime(&compute_c->primes) == -1)
-        {
-            break;
-        }
-
         // check if the inequality is violated every checkDistance primes
         if (compute_c->primes.index % compute_c->checkDistance == 0)
         {
@@ -185,6 +180,11 @@ long compute(compute_config *compute_c, long d)
                 arb_clear(psigma);
                 return compute_c->primes.index;
             }
+        }
+
+        if (get_next_prime(&compute_c->primes) == -1)
+        {
+            break;
         }
     }
     arb_clear(sum);
