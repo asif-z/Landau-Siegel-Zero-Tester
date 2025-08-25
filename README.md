@@ -22,7 +22,7 @@ Landau [^Landau1918] proved that there is a constant $c > 0$ such that for all $
 $\prod_\chi L(s,\chi)$ has at most one zero in the region
 
 $$
-\sigma \ge 1 - \frac{c}{\log\!\big(q(|t|+4)\big)} \tag{1}
+\sigma > 1 - \frac{c}{\log(q(|t|+4))}
 $$
 
 where $\chi$ ranges over all Dirichlet characters of modulus $q$.  
@@ -38,7 +38,7 @@ following theorem.
 Let $\chi$ be a primitive quadratic character of modulus $q \leq 10^{9}$. Then $L(s,\chi)$ has no real zeros $\beta_1$ in the region
 
 $$
-\beta_1 \;\geq\; 1 - \frac{c}{\log q} \tag{2}
+\beta_1 > 1 - \frac{c}{\log q} 
 $$
 
 with $c = \tfrac{1}{10}$.
