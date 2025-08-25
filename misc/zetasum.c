@@ -11,7 +11,7 @@ int read_primes(long lenPrime, long* primes)
 {
     FILE* file;
     int count = 0;
-    file = fopen("primes.txt", "r");
+    file = fopen("input/primes.txt", "r");
     if (file == NULL)
     {
         perror("Error opening file");
@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     //set up lambda
     arb_t lambda;
     arb_init(lambda);
-    arb_set_str(lambda, "0.69165", prec);
+    arb_set_str(lambda, "1.4256", prec);
 
     long* primes = (long*)malloc(lenPrime * sizeof(long));
     read_primes(lenPrime, primes);
@@ -57,7 +57,6 @@ int main(int argc, char** argv)
     arb_init(one);
     arb_set_ui(one, 1);
     arb_t temp1; //temp variables for calculations
-    arb_t temp2, temp3,  temp4, temp5;
     arb_t r;
     arb_t zsum;
 
@@ -70,12 +69,12 @@ int main(int argc, char** argv)
     arb_div(r, lambda, logQ, prec);
     arb_add(sigma, one, r, prec);
 
-            
     arb_init(zsum);
     long prime = primes[0];
     int primeIndex = 0;
-    while (primeIndex < 10000)
+    for (primeIndex=0; primeIndex < 50000; primeIndex++)
     {
+        prime = primes[primeIndex];
         // Calculating log(p)
         arb_init(logp);
         arb_log_ui(logp, prime, prec);
@@ -96,9 +95,7 @@ int main(int argc, char** argv)
         arb_mul(temp1, zeta_term, logp, prec);
         arb_add(zsum, zsum, temp1, prec);
 
-        prime = primes[primeIndex++];
-
-        if(primeIndex==100 || primeIndex%500==0){
+        if(primeIndex==3 || primeIndex==100 ||primeIndex==500 ||primeIndex==1000|| primeIndex%4000==0){
             printf("%d,%d: zsum: ", primeIndex, prime);
             printf(arb_get_str(zsum, 5, 0));
             printf("\n");

@@ -5,34 +5,39 @@
 #include <mpi.h>
 #include <stdbool.h>
 #include "compute.h"
+#include "presets.h"
+
+/*
+ * Uses clusters to verify that L(s,\chi_d) does not have a Landau-Siegel zero for |d|<=qMax
+ */
 
 #define JOB_TAG 1
 #define STOP_TAG 2
 
 #define FOLDERNAME_LEN 64
 
-//total number of primes precomputed
-#define lenPrime 5000001
-//FLINT precision to use
+//number of bits of precision to use
 #define prec0 50
 //max number of primes to add to the sum before truncating
-#define primeBd0 5000000
+#define N00 5000000
 //dimensions of the Kronecker symbol array
 #define rows 10000
 #define cols 104729
-
 //maximum modulus used
 #define qMax 10000
-long const step = 1000;
+//range of moduli a cluster will compute before requesting more from the master process
+#define step 1000
+//preset for which value of lambda to use
+enum Preset preset = smallX1;
 
 compute_config compute_c0;
 
 int init_variables(compute_config* compute_c)
 {
     compute_c->prec = prec0;
-    compute_c->primeBd = primeBd0;
+    compute_c->N0 = N00;
 
-    if (primeiter_init(&(compute_c->primes), "input/primes.txt",primeBd0) != 0)
+    if (primeiter_init(&(compute_c->primes), "input/primes.txt",N00) != 0)
     {
         return 1;
     }
@@ -51,43 +56,29 @@ int init_variables(compute_config* compute_c)
 
     arb_init(lambda);
     arb_init(compute_c->phi);
-    arb_init(compute_c->O1);
-
-    arb_init(compute_c->one);
-    arb_set_ui(compute_c->one, 1);
+    arb_init(compute_c->E);
+    initializeLambda(preset, lambda, compute_c->phi, compute_c->E, prec0);
 
     arb_init(compute_c->div78);
     arb_set_str(compute_c->div78, "0.875", prec0);
 
-    //presets:
-
-    //small X (pi(X)~7000)
-    arb_set_str(lambda, "1.45", prec0);
-    arb_set_str(compute_c->phi, "0.228774", prec0);
-    arb_set_str(compute_c->O1, "1.4894", prec0);
-
-    //large X (pi(X)~200000)
-    // arb_set_str(lambda, "1.3", prec0);
-    // arb_set_str(compute_c->phi, "0.23083", prec0);
-    // arb_set_str(compute_c->O1, "1.50458", prec0);
-
-    // sets sigma, r
+    // initializes sigma, r
     arb_init(compute_c->sigma);
     arb_init(logQ);
     arb_init(compute_c->r);
     arb_log_ui(logQ, 10000000000, prec0);
     arb_div(compute_c->r, lambda, logQ, prec0);
-    arb_add(compute_c->sigma, compute_c->one, compute_c->r, prec0);
+    arb_add_ui(compute_c->sigma, compute_c->r, 1, prec0);
 
-    //
     arb_clear(lambda);
     arb_clear(logQ);
     return 0;
 }
 
-bool is_valid_q(long q)
+// determines whether d is a fundamental discriminant (without the square-free conditions)
+bool is_valid_d(long d)
 {
-    return q != 0 && q != 1 && (q % 16 == 8 || q % 16 == 12 || q % 16 == -8 || q % 16 == -4 || q % 4 == 1 || q % 4 == -
+    return d != 0 && d != 1 && (d % 16 == 8 || d % 16 == 12 || d % 16 == -8 || d % 16 == -4 || d % 4 == 1 || d % 4 == -
         3);
 }
 
@@ -95,7 +86,8 @@ int master_run(int size)
 {
     printf("Master started\n");
     fflush(stdout);
-    long cur = -qMax;
+    long cur = -qMax; // current modulus
+
     MPI_Status status;
     int active_workers = size - 1; // Track active workers
 
@@ -176,18 +168,18 @@ int worker_run(int rank, char foldername[64])
         // Process job
         printf("%ld at worker %d\n", cur, rank);
 
-        for (long q = cur; q < cur + step && q < qMax; q++)
+        for (long d = cur; d < cur + step && d < qMax; d++)
         {
-            if (is_valid_q(q))
+            if (is_valid_d(d))
             {
-                long result = compute(&compute_c0, q);
+                long result = compute(&compute_c0, d);
                 if (result < 0)
                 {
-                    fprintf(outfile, "%ld,fail,%ld\n", q, result);
+                    fprintf(outfile, "%ld,fail,%ld\n", d, result);
                 }
                 else
                 {
-                    fprintf(outfile, "%ld,pass,%ld\n", q, result);
+                    fprintf(outfile, "%ld,pass,%ld\n", d, result);
                 }
             }
         }

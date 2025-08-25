@@ -25,7 +25,7 @@ const slong err = 10;
 int init_variables(compute_config* compute_c)
 {
     compute_c->prec = prec0;
-    compute_c->primeBd = primeBd0;
+    compute_c->N0 = primeBd0;
 
     if (primeiter_init(&(compute_c->primes), "input/primes.txt",primeBd0) != 0)
     {
@@ -46,10 +46,7 @@ int init_variables(compute_config* compute_c)
 
     arb_init(lambda);
     arb_init(compute_c->phi);
-    arb_init(compute_c->O1);
-
-    arb_init(compute_c->one);
-    arb_set_ui(compute_c->one, 1);
+    arb_init(compute_c->E);
 
     arb_init(compute_c->div78);
     arb_set_str(compute_c->div78, "0.875", prec0);
@@ -59,12 +56,12 @@ int init_variables(compute_config* compute_c)
     //small X (pi(X)~7000)
     arb_set_str(lambda, "1.45", prec0);
     arb_set_str(compute_c->phi, "0.228774", prec0);
-    arb_set_str(compute_c->O1, "1.4894", prec0);
+    arb_set_str(compute_c->E, "1.4894", prec0);
 
     //large X (pi(X)~200000)
     // arb_set_str(lambda, "1.3", prec0);
     // arb_set_str(compute_c->phi, "0.23083", prec0);
-    // arb_set_str(compute_c->O1, "1.50458", prec0);
+    // arb_set_str(compute_c->E, "1.50458", prec0);
 
     // sets sigma, r
     arb_init(compute_c->sigma);
@@ -72,7 +69,7 @@ int init_variables(compute_config* compute_c)
     arb_init(compute_c->r);
     arb_log_ui(logQ, 10000000000, prec0);
     arb_div(compute_c->r, lambda, logQ, prec0);
-    arb_add(compute_c->sigma, compute_c->one, compute_c->r, prec0);
+    arb_add_ui(compute_c->sigma, compute_c->r, 1, prec0);
 
     //
     arb_clear(lambda);

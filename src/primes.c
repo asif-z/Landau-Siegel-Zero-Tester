@@ -6,9 +6,9 @@
 #include "primes.h"
 
 //reads a precomputed list of primes
-int primeiter_init(primeiter* primes, const char* filename, long lenPrime)
+int primeiter_init(primeiter* primes, const char* filename, long size)
 {
-    primes->arr = (long*)malloc(lenPrime * sizeof(long));
+    primes->arr = (long*)malloc(size * sizeof(long));
 
     if (primes->arr == NULL)
     {
@@ -26,7 +26,7 @@ int primeiter_init(primeiter* primes, const char* filename, long lenPrime)
     }
 
     // Read each long from the file
-    while (fscanf(file, "%ld", &primes->arr[count]) == 1 && count < lenPrime)
+    while (fscanf(file, "%ld", &primes->arr[count]) == 1 && count < size)
     {
         count++;
     }
@@ -35,11 +35,10 @@ int primeiter_init(primeiter* primes, const char* filename, long lenPrime)
 
     primes->index = 0;
     primes->cur_prime = 2;
-    primes->size = lenPrime;
+    primes->size = size;
     return 0;
 }
 
-//
 long get_next_prime(primeiter* primes)
 {
     if (primes->index == primes->size - 1)
@@ -51,13 +50,11 @@ long get_next_prime(primeiter* primes)
     return primes->index;
 }
 
-//
 long get_prime_at(primeiter* primes, long i)
 {
     return primes->arr[i];
 }
 
-//
 void set_index(primeiter* primes, long i)
 {
     primes->index = i;

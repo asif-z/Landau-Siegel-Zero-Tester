@@ -3,13 +3,13 @@
 #define PRIMES_H
 
 typedef struct primeiter {
-    long* arr;
-    long index;
-    long cur_prime;
-    long size;
+    long* arr; //array of primes
+    long index; //current index
+    long cur_prime; //current prime
+    long size; //size of the array
 } primeiter;
 
-int primeiter_init(primeiter* primes, const char* filename, long lenPrime);
+int primeiter_init(primeiter* primes, const char* filename, long size);
 
 long get_next_prime(primeiter* primes);
 
