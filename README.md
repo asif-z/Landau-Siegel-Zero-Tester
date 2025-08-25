@@ -18,7 +18,7 @@ Let $\chi$ be a Dirichlet character mod $q$,
 $$L(s,\chi) := \sum_{n=1}^\infty \frac{\chi(n)}{n^s}, \quad \Re(s) > 0,$$
 be the associated Dirichlet $L$-function, and $s = \sigma + it$ be a complex number.
 
-Landau [^Landau1918] proved that there is a constant $c > 0$ such that for all $q$,
+Landau proved that there is a constant $c > 0$ such that for all $q$,
 $\prod_\chi L(s,\chi)$ has at most one zero in the region
 
 $$
