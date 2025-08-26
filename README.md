@@ -70,8 +70,8 @@ From the repository root:
 ```bash
 mkdir build
 cd build
-cmake --build ..
-make .
+cmake ..
+cmake --build .
 ```
 
 ### 4. Run with MPI
