@@ -2,7 +2,7 @@
 
 fname = input("Enter the file name: ")
 
-f = open(fname, "r").strip()
+f = open(fname, "r")
 
 counter = 0;
 
