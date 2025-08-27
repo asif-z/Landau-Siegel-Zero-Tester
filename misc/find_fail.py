@@ -17,16 +17,17 @@ def search_fail_in_rank_files(directory='.'):
     for root, _, files in os.walk(directory):
         for file in files:
             if pattern.match(file):
+                print(file)
                 file_path = os.path.join(root, file)
                 try:
                     with open(file_path, mode='r', encoding='utf-8') as csvfile:
                         reader = csv.reader(csvfile)
                         for row_num, row in enumerate(reader, start=1):
                             if any(keyword_lower in str(cell).lower() for cell in row):
-                                print(f"Match in: {file_path}")
-                                print(f"Row {row_num}: {row}")
+                                # print(f"Match in: {file_path}")
+                                # print(f"Row {row_num}: {row}")
                                 f.write(row[0]+"\n")
-                                print("-" * 60)
+                                # print("-" * 60)
                 except Exception as e:
                     print(f"Error reading {file_path}: {e}")
 
