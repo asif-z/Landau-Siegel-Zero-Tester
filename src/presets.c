@@ -13,7 +13,7 @@ void initializeLambda(enum Preset preset, arb_t lambda, arb_t phi, arb_t E, long
     else if (preset==mediumX1) {
         arb_set_str(lambda, "1.1", prec);
         arb_set_str(phi, "0.23362", prec);
-        arb_set_str(E, "1.0954", prec);
+        arb_set_str(E, "1.1952", prec);
     }
     //extremely large X (pi(X)~ 5million, X~86028121)
     else if (preset==largeX1) {
