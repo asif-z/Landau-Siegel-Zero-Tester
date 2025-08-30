@@ -3,18 +3,21 @@
 #include <stdlib.h>
 #include <flint/arb.h>
 #include <flint/long_extras.h>
+#include "../src/presets.h"
+#include "../src/compute.h"
 #include <time.h>
 #include<unistd.h>
+//preset for which value of lambda to use
+enum Preset preset = largeX1;
 
-//Computes the zeta and L terms for a small list of q values. Used for debugging and checking how badly some moduli fail
-
+//Computes the zeta and L terms for a small list of d values. Used for debugging and checking how badly some moduli fail
 
 //read a list of primes
 int read_primes(long lenPrime, long* primes)
 {
     FILE* file;
     int count = 0;
-    file = fopen("primes.txt", "r");
+    file = fopen("input/primes.txt", "r");
     if (file == NULL)
     {
         perror("Error opening file");
@@ -33,46 +36,33 @@ int read_primes(long lenPrime, long* primes)
 
 int main(int argc, char** argv)
 {
+    arb_t a;
+    arb_init(a);
+    arb_log_ui(a,4294967289, 70);
     //Constants
 
     //len of prime
-    const long lenPrime = 500000;
+    const long lenPrime = 5000000;
 
     //precision set up
     long prec = 70;
 
-    //set up length to calculate
-    long qMax = 100000000;
-
+    //init var
     arb_t lambda;
     arb_t phi;
-    arb_t O1; //the O(1)+O(loglog(q)) term
+    arb_t E;
+
     arb_init(lambda);
     arb_init(phi);
-    arb_init(O1);
-
-    //presets:
-
-    //small X (pi(X)~7000)
-    arb_set_str(lambda, "1.45", prec);
-    arb_set_str(phi, "0.228774", prec);
-    arb_set_str(O1, "1.4894", prec);
-
-    //large X (pi(X)~200000)
-    // arb_set_str(lambda, "1.3", prec);
-    // arb_set_str(phi, "0.23083", prec);
-    // arb_set_str(O1, "1.50458", prec);
-
-
-    clock_t start, end;
-    start = clock(); // start timer on rank 0 only
+    arb_init(E);
+    initializeLambda(preset, lambda, phi, E, prec);
 
     long* primes = (long*)malloc(lenPrime * sizeof(long));
 
     read_primes(lenPrime, primes);
 
     // setting up variables
-    arb_t logq;
+    arb_t logd;
     arb_t sigma;
     arb_t sum;
     arb_t logp;
@@ -110,14 +100,21 @@ int main(int argc, char** argv)
     arb_init(c);
     arb_set_str(c, "0.1", prec);
 
-    long long qs[] = {44701733, -90071083, 86336333, -3, -99989443, -99868267, -98490043, 79188317};
-    //loop through all q
-    for (int i=0; i<sizeof(qs)/sizeof(long long); i++)
+    long ds[] = {-15,-11,-8,-7,-4,-3 ,5 ,8 ,12 ,13 ,17};
+    //loop through all d
+    for (int i=0; i<sizeof(ds)/sizeof(long); i++)
     {
-        long long q = qs[i];
-        // Calculating log(q)
-        arb_init(logq);
-        arb_log_ui(logq, abs(q), prec);
+        long d = ds[i];
+        // Calculating log(d)
+        arb_init(logd);
+        long absd;
+        if (d<0) {
+            absd = -d;
+        }
+        else {
+            absd = d;
+        }
+        arb_log_ui(logd, absd, prec);
 
         //calculate rhs
         arb_init(rhs);
@@ -129,15 +126,15 @@ int main(int argc, char** argv)
         arb_init(rhs_term_2);
 
         arb_div(temp3, c, r, prec);
-        arb_mul(temp4, r, logq, prec);
+        arb_mul(temp4, r, logd, prec);
         arb_add(temp4, temp4, c, prec);
         arb_div(rhs, temp3, temp4, prec);
 
-        arb_mul(temp5, phi, logq, prec);
+        arb_mul(temp5, phi, logd, prec);
         arb_add(rhs, rhs, temp5, prec);
-        arb_add(rhs, rhs, O1, prec);
+        arb_add(rhs, rhs, E, prec);
 
-        arb_div(top, c, logq, prec);
+        arb_div(top, c, logd, prec);
         arb_add(top, r, top, prec);
         arb_add(bottom, r, div78, prec);
         arb_mul(bottom, bottom, bottom, prec);
@@ -151,12 +148,10 @@ int main(int argc, char** argv)
         arb_init(zsum);
         arb_init(lsum);
 
-        // loop over all primes < q^alpha
-        long prime = primes[0];
-        int primeIndex = 0;
-        while (primeIndex < 300000)
+        for (long primeIndex = 0; primeIndex < lenPrime; primeIndex++)
         {
-            int chi = z_kronecker(q, prime); //the value of chi(prime)
+            long prime = primes[primeIndex];
+            int chi = z_kronecker(d, prime); //the value of chi(prime)
 
             // Calculating log(p)
             arb_init(logp);
@@ -200,11 +195,9 @@ int main(int argc, char** argv)
             arb_add(zsum, zsum, temp1, prec);
             arb_mul(temp1, l_term, logp, prec);
             arb_add(lsum, lsum, temp1, prec);
-
-            prime = primes[primeIndex++];
         }
 
-        printf("%d: zsum: ", q);
+        printf("%ld: zsum: ", d);
         printf(arb_get_str(zsum, 5, 0));
         printf(", lsum: ");
         printf(arb_get_str(lsum, 5, 0));
@@ -213,15 +206,7 @@ int main(int argc, char** argv)
         printf(", total: ");
         printf(arb_get_str(sum, 5, 0));
         printf("\n");
-
-        // char *output = (char *) malloc(50 * sizeof(char));
-        // output = arb_get_str(rhs, 40, 0);
-        // printf("%ld,%s\n",q,output);
     }
-
-
-    end = clock();
-    printf("Elapsed time: %.3f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
 
     return 0;
 }

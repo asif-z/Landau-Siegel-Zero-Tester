@@ -10,7 +10,14 @@ void compute_rhs(compute_config *compute_c, long d, arb_t rhs)
     arb_t temp3, temp4, temp5, top, bottom, rhs_term_2;
     // Calculating log(|d|)
     arb_init(logq);
-    arb_log_ui(logq, abs(d), compute_c->prec);
+    long absd;
+    if (d<0) {
+        absd = -d;
+    }
+    else {
+        absd = d;
+    }
+    arb_log_ui(logq, absd, compute_c->prec);
 
     //calculate rhs
     arb_init(temp3);
