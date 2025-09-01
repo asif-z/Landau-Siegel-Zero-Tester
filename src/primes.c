@@ -26,7 +26,7 @@ int primeiter_init(primeiter* primes, const char* filename, long size)
     }
 
     // Read each long from the file
-    while (fscanf(file, "%ld", &primes->arr[count]) == 1 && count < size)
+    while (count < size && fscanf(file, "%ld", &primes->arr[count]) == 1)
     {
         count++;
     }
