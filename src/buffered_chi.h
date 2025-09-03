@@ -2,11 +2,13 @@
 // Created by kris on 8/1/25.
 //
 
+#include <stdbool.h>
+
 #ifndef BUFFERED_CHI_H
 #define BUFFERED_CHI_H
 
 typedef struct buffered_chi {
-    int* chi_table; //array of precomputer values of the Kronecker symbol
+    bool* chi_table; //array of precomputed values of the Kronecker symbol
     // the dimensions of the array
     long rows;
     long cols;

@@ -10,7 +10,7 @@
 // reads precomputed values of the Kronecker symbol from a file and stores them in chi_t->chi_table
 int chi_init(buffered_chi* chi_t, long rows, long cols, char* filename)
 {
-    chi_t->chi_table = (int*)calloc(rows * cols, sizeof(int));
+    chi_t->chi_table = (bool*)calloc(rows * cols, sizeof(bool));
     chi_t->rows = rows;
     chi_t->cols = cols;
 
@@ -29,12 +29,12 @@ int chi_init(buffered_chi* chi_t, long rows, long cols, char* filename)
         if (ch == 'R')
         {
             //R signifies a residue, i.e. this value is 1
-            chi_t->chi_table[i * cols + j] = 1;
+            chi_t->chi_table[i * cols + j] = true;
         }
         else if (ch == 'N')
         {
             //N signifies nonresidue, i.e. this value is -1
-            chi_t->chi_table[i * cols + j] = -1;
+            chi_t->chi_table[i * cols + j] = false;
         }
         else if (ch == '\n')
         {
@@ -87,7 +87,12 @@ int chi_val(buffered_chi* chi_t, const long d, const long prime, const long prim
         }
         if (remainder > 0)
         {
-            chi = chi_t->chi_table[(primeIndex - 1) * chi_t->cols + remainder - 1];
+            if (chi_t->chi_table[(primeIndex - 1) * chi_t->cols + remainder - 1]) {
+                chi = 1;
+            }
+            else {
+                chi = -1;
+            }
         }
     }
     return chi;
