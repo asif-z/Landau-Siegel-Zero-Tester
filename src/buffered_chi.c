@@ -10,7 +10,7 @@
 // reads precomputed values of the Kronecker symbol from a file and stores them in chi_t->chi_table
 int chi_init(buffered_chi* chi_t, long rows, long cols, char* filename)
 {
-    chi_t->chi_table = (int*)malloc(rows * cols * sizeof(int));
+    chi_t->chi_table = (int*)calloc(rows * cols, sizeof(int));
     chi_t->rows = rows;
     chi_t->cols = cols;
 
